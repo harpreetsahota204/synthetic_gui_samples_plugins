@@ -13,6 +13,11 @@ from .utils import (
     _get_keypoints_fields,
 )
 
+def apply_grayscale(image: np.ndarray) -> np.ndarray:
+    """Convert image to 3-channel BGR grayscale."""
+    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    gray_bgr = cv2.cvtColor(gray, cv2.COLOR_GRAY2BGR)
+    return gray_bgr
 
 class GrayscaleAugment(foo.Operator):
     """
@@ -104,12 +109,7 @@ class GrayscaleAugment(foo.Operator):
         Returns:
             an optional dict of results values
         """
-        def apply_grayscale(image: np.ndarray) -> np.ndarray:
-            """Convert image to 3-channel BGR grayscale."""
-            gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-            gray_bgr = cv2.cvtColor(gray, cv2.COLOR_GRAY2BGR)
-            return gray_bgr
-        
+
         # Get parameters from user input
         copy_detections = ctx.params.get("copy_detections", False)
         copy_keypoints = ctx.params.get("copy_keypoints", False)
@@ -140,7 +140,7 @@ class GrayscaleAugment(foo.Operator):
                 transforms,
                 label_fields=label_fields,
                 new_filepath=None,
-                tags=None,
+                tags=['grayscaled'],
                 transform_record=serialized_transform,
             )
 

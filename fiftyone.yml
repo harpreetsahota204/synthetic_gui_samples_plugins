@@ -1,0 +1,8 @@
+fiftyone:
+  version: ">=1.3.0"
+name: "@harpreetsahota/synthetic_gui_samples_plugins"
+version: "1.0.0"
+description: "Create synthetic GUI samples for your data"
+url: "https://github.com/harpreetsahota204/synthetic_gui_samples_plugins"
+operators:
+  - grayscale_augment

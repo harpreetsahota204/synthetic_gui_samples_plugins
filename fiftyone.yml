@@ -7,3 +7,4 @@ url: "https://github.com/harpreetsahota204/synthetic_gui_samples_plugins"
 operators:
   - grayscale_augment
   - invert_colors_augment
+  - colorblind_sim_augment

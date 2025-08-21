@@ -366,6 +366,11 @@ def transform_sample(
         if hasattr(sample, field_name) and sample[field_name] is not None:
             new_sample[field_name] = sample[field_name].copy()
     
+    # Always copy application and platform fields if they exist
+    for field_name in ["application", "platform"]:
+        if hasattr(sample, field_name) and sample[field_name] is not None:
+            new_sample[field_name] = sample[field_name]
+    
     # Add tags if provided
     if tags:
         new_sample.tags = tags

@@ -13,6 +13,24 @@ from .utils import (
     _get_keypoints_fields,
 )
 
+def apply_colorblind_filter(image: np.ndarray, colorblind_type: str) -> np.ndarray:
+    """Apply colorblind simulation matrix to image."""
+    # Define colorblind simulation matrices
+    transforms = {
+        # Complete color blindness (dichromacy)
+        'deuteranopia': np.array([[0.625, 0.375, 0], [0.7, 0.3, 0], [0, 0.3, 0.7]]),
+        'protanopia': np.array([[0.567, 0.433, 0], [0.558, 0.442, 0], [0, 0.242, 0.758]]),
+        'tritanopia': np.array([[0.95, 0.05, 0], [0, 0.433, 0.567], [0, 0.475, 0.525]]),
+        
+        # Anomalous trichromacy (milder forms)
+        'deuteranomaly': np.array([[0.8, 0.2, 0], [0.258, 0.742, 0], [0, 0.142, 0.858]]),
+        'protanomaly': np.array([[0.817, 0.183, 0], [0.333, 0.667, 0], [0, 0.125, 0.875]]),
+        'tritanomaly': np.array([[0.967, 0.033, 0], [0, 0.733, 0.267], [0, 0.183, 0.817]])
+    }
+    
+    transform_matrix = transforms.get(colorblind_type, transforms['deuteranopia'])
+    return cv2.transform(image, transform_matrix)
+
 class ColorblindSimAugment(foo.Operator):
     """
     Minimal ColorblindSimAugment operator.
@@ -150,23 +168,7 @@ class ColorblindSimAugment(foo.Operator):
         Returns:
             an optional dict of results values
         """
-        def apply_colorblind_filter(image: np.ndarray, colorblind_type: str) -> np.ndarray:
-            """Apply colorblind simulation matrix to image."""
-            # Define colorblind simulation matrices
-            transforms = {
-                # Complete color blindness (dichromacy)
-                'deuteranopia': np.array([[0.625, 0.375, 0], [0.7, 0.3, 0], [0, 0.3, 0.7]]),
-                'protanopia': np.array([[0.567, 0.433, 0], [0.558, 0.442, 0], [0, 0.242, 0.758]]),
-                'tritanopia': np.array([[0.95, 0.05, 0], [0, 0.433, 0.567], [0, 0.475, 0.525]]),
-                
-                # Anomalous trichromacy (milder forms)
-                'deuteranomaly': np.array([[0.8, 0.2, 0], [0.258, 0.742, 0], [0, 0.142, 0.858]]),
-                'protanomaly': np.array([[0.817, 0.183, 0], [0.333, 0.667, 0], [0, 0.125, 0.875]]),
-                'tritanomaly': np.array([[0.967, 0.033, 0], [0, 0.733, 0.267], [0, 0.183, 0.817]])
-            }
-            
-            transform_matrix = transforms.get(colorblind_type, transforms['deuteranopia'])
-            return cv2.transform(image, transform_matrix)
+
         
         # Get parameters from user input
         colorblind_type = ctx.params.get("colorblind_type", "deuteranopia")
@@ -203,7 +205,7 @@ class ColorblindSimAugment(foo.Operator):
                 transforms,
                 label_fields=label_fields,
                 new_filepath=None,
-                tags=None,
+                tags=[colorblind_type],
                 transform_record=serialized_transform,
             )
 

@@ -10,9 +10,6 @@ import torch
 from .utils import (
     _serialize_transform_record,
     transform_sample,
-    _get_label_fields,
-    _get_detections_fields,
-    _get_keypoints_fields,
 )
 
 # Prompt templates as constants
@@ -59,7 +56,7 @@ def rephrase_text(text: str, model, tokenizer, mode: str, target_language: str =
         messages,
         tokenize=False,
         add_generation_prompt=True,
-        enable_thinking=True
+        enable_thinking=
     )
     
     model_inputs = tokenizer([text_input], return_tensors="pt").to(model.device)

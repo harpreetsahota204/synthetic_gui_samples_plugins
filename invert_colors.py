@@ -15,7 +15,6 @@ from .utils import (
 
 class InvertColorsAugment(foo.Operator):
     """
-    Minimal InvertColorsAugment operator.
 
     - Operates on samples in ctx.selected if present, otherwise on ctx.view.
     - For each sample:

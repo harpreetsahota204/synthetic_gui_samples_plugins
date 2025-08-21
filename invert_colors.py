@@ -13,6 +13,10 @@ from .utils import (
     _get_keypoints_fields,
 )
 
+def apply_color_inversion(image: np.ndarray) -> np.ndarray:
+    """Invert image colors using cv2.bitwise_not."""
+    return cv2.bitwise_not(image)
+
 class InvertColorsAugment(foo.Operator):
     """
 
@@ -102,10 +106,7 @@ class InvertColorsAugment(foo.Operator):
         Returns:
             an optional dict of results values
         """
-        def apply_color_inversion(image: np.ndarray) -> np.ndarray:
-            """Invert image colors using cv2.bitwise_not."""
-            return cv2.bitwise_not(image)
-        
+
         # Get parameters from user input
         copy_detections = ctx.params.get("copy_detections", False)
         copy_keypoints = ctx.params.get("copy_keypoints", False)
@@ -136,7 +137,7 @@ class InvertColorsAugment(foo.Operator):
                 transforms,
                 label_fields=label_fields,
                 new_filepath=None,
-                tags=None,
+                tags=["color_inverted"],
                 transform_record=serialized_transform,
             )
 

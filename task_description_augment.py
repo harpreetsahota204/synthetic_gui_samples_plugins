@@ -42,8 +42,12 @@ def initialize_llm(model_name: str):
     )
     return model, tokenizer
 
-def rephrase_text(text: str, model, tokenizer, mode: str, target_language: str = "") -> str:
-    """Use LLM to rephrase or translate text."""
+def rephrase_text(text: str, model, tokenizer, mode: str, target_language: str = "") -> tuple[str, str]:
+    """Use LLM to rephrase or translate text.
+    
+    Returns:
+        tuple: (rephrased_text, reasoning)
+    """
     if mode == "translate" and target_language:
         prompt = TRANSLATE_PROMPT.format(text=text, target_language=target_language)
     else:
@@ -54,7 +58,8 @@ def rephrase_text(text: str, model, tokenizer, mode: str, target_language: str =
     text_input = tokenizer.apply_chat_template(
         messages,
         tokenize=False,
-        add_generation_prompt=True
+        add_generation_prompt=True,
+        enable_thinking=True
     )
     
     model_inputs = tokenizer([text_input], return_tensors="pt").to(model.device)
@@ -70,17 +75,39 @@ def rephrase_text(text: str, model, tokenizer, mode: str, target_language: str =
     )
     
     output_ids = generated_ids[0][len(model_inputs.input_ids[0]):].tolist()
-    content = tokenizer.decode(output_ids, skip_special_tokens=True).strip()
     
-    # Clean up the response
-    lines = content.strip().split('\n')
-    rephrased = lines[0].strip().strip('"').strip("'")
+    # parsing thinking content
+    try:
+        # rindex finding 151668 (</think>)
+        index = len(output_ids) - output_ids[::-1].index(151668)
+    except ValueError:
+        index = 0
+
+    thinking_content = tokenizer.decode(output_ids[:index], skip_special_tokens=True).strip("\n")
+    rephrased = tokenizer.decode(output_ids[index:], skip_special_tokens=True).strip("\n")
     
     # Fallback to original if something went wrong
     if not rephrased or len(rephrased) < 3:
-        return text
+        return text, thinking_content
         
-    return rephrased
+    return rephrased, thinking_content
+
+def process_labels_with_task_descriptions(labels_list, model, tokenizer, mode, target_language):
+    """Process a list of labels (detections or keypoints) to rephrase their task descriptions."""
+    for label in labels_list:
+        if hasattr(label, "task_description") and label.task_description:
+            # Preserve original task description
+            label.original_task_description = label.task_description
+            # Generate new task description using LLM
+            new_description, reasoning = rephrase_text(
+                label.task_description, 
+                model, 
+                tokenizer, 
+                mode, 
+                target_language
+            )
+            label.task_description = new_description
+            label.rephrase_reasoning = reasoning
 
 class TaskDescriptionAugment(foo.Operator):
     """
@@ -126,8 +153,8 @@ class TaskDescriptionAugment(foo.Operator):
             description="Good balance of speed and quality"
         )
         model_choices.add_choice(
-            "Qwen/Qwen3-8B-MLX-bf16",
-            label="Qwen3-8B-MLX (High Quality)",
+            "Qwen/Qwen3-0.6B-MLX-bf16",
+            label="Qwen3-0.6B-MLX (Fastest, smallest MLX)",
             description="Requires: pip install mlx_lm"
         )
         model_choices.add_choice(
@@ -244,7 +271,7 @@ class TaskDescriptionAugment(foo.Operator):
         # Get parameters from user input
         model_name = ctx.params.get("model_name", "Qwen/Qwen3-1.7B")
         mode = ctx.params.get("mode", "rephrase")
-        target_language = ctx.params.get("target_language", "")
+        target_language = ctx.params.get("target_language", "") if mode == "translate" else ""
         process_detections = ctx.params.get("process_detections", False)
         process_keypoints = ctx.params.get("process_keypoints", False)
         
@@ -270,7 +297,7 @@ class TaskDescriptionAugment(foo.Operator):
             "params": {
                 "model": model_name,
                 "mode": mode,
-                "target_language": target_language if mode == "translate" else None
+                "target_language": target_language if target_language else None
             }, 
             "plugin": "task_description_augment"
         }
@@ -304,33 +331,23 @@ class TaskDescriptionAugment(foo.Operator):
             
             # Process detections if requested
             if process_detections and hasattr(new_sample, "detections") and new_sample.detections is not None:
-                for detection in new_sample.detections.detections:
-                    if hasattr(detection, "task_description") and detection.task_description:
-                        # Preserve original task description
-                        detection.original_task_description = detection.task_description
-                        # Generate new task description using LLM
-                        detection.task_description = rephrase_text(
-                            detection.task_description, 
-                            model, 
-                            tokenizer, 
-                            mode, 
-                            target_language
-                        )
+                process_labels_with_task_descriptions(
+                    new_sample.detections.detections, 
+                    model, 
+                    tokenizer, 
+                    mode, 
+                    target_language
+                )
             
             # Process keypoints if requested
             if process_keypoints and hasattr(new_sample, "keypoints") and new_sample.keypoints is not None:
-                for keypoint in new_sample.keypoints.keypoints:
-                    if hasattr(keypoint, "task_description") and keypoint.task_description:
-                        # Preserve original task description
-                        keypoint.original_task_description = keypoint.task_description
-                        # Generate new task description using LLM
-                        keypoint.task_description = rephrase_text(
-                            keypoint.task_description, 
-                            model, 
-                            tokenizer, 
-                            mode, 
-                            target_language
-                        )
+                process_labels_with_task_descriptions(
+                    new_sample.keypoints.keypoints, 
+                    model, 
+                    tokenizer, 
+                    mode, 
+                    target_language
+                )
             
             # Save the modified sample
             new_sample.save()

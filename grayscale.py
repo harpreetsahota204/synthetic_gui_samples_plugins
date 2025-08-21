@@ -32,114 +32,105 @@ class GrayscaleAugment(foo.Operator):
             label="Apply Grayscale Augmentation",
         )
 
-    def resolve_input(self, ctx) -> types.Property:
-        """
-        Define user inputs that will be available in ctx.params during execute().
+    def resolve_input(self, ctx):
+        """Implement this method to collect user inputs as parameters
+        that are stored in `ctx.params`.
+
+        Returns:
+            a `types.Property` defining the form's components
         """
         inputs = types.Object()
         
-        # Let user choose which label fields to copy
-        available_fields = _get_label_fields(ctx)
-        if available_fields:
-            for field_name in available_fields:
-                inputs.bool(
-                    f"copy_{field_name}",
-                    default=True,
-                    label=f"Copy {field_name}",
-                    description=f"Copy {field_name} labels to the new grayscale samples",
-                    view=types.CheckboxView()
-                )
-        else:
-            # If no fields detected, provide default options
-            inputs.bool(
-                "copy_detections",
-                default=True,
-                label="Copy detections",
-                description="Copy detection labels to the new grayscale samples",
-                view=types.CheckboxView()
-            )
-            inputs.bool(
-                "copy_keypoints", 
-                default=True,
-                label="Copy keypoints",
-                description="Copy keypoint labels to the new grayscale samples",
-                view=types.CheckboxView()
-            )
+        # Simple checkbox for copying detections
+        inputs.bool(
+            "copy_detections",
+            default=True,
+            label="Copy detections",
+            description="Copy detection labels to the new grayscale samples",
+            view=types.CheckboxView()
+        )
         
-        return types.Property(inputs, view=types.View(label="Grayscale Augmentation"))
+        # Simple checkbox for copying keypoints
+        inputs.bool(
+            "copy_keypoints", 
+            default=True,
+            label="Copy keypoints",
+            description="Copy keypoint labels to the new grayscale samples",
+            view=types.CheckboxView()
+        )
+        
+        # Delegation option
+        inputs.bool(
+            "delegate",
+            default=False,
+            label="Delegate execution?",
+            description="If you choose to delegate this operation you must first have a delegated service running",
+            view=types.CheckboxView()
+        )
 
-    def execute(self, ctx) -> Dict[str, Any]:
+        return types.Property(inputs)
+    
+    def resolve_delegation(self, ctx):
+        """Implement this method if you want to programmatically *force*
+        this operation to be delegated or executed immediately.
+
+        Returns:
+            whether the operation should be delegated (True), run
+            immediately (False), or None to defer to
+            `resolve_execution_options()` to specify the available options
         """
-        - Determine samples: ctx.dataset.select(ctx.selected) if ctx.selected else ctx.view
-        - Determine label fields to copy via _get_label_fields(ctx);
-          if that helper returns nothing, fall back to ['detections','keypoints'].
-        - For each sample, call transform_sample(...) with transforms = [("grayscale", apply_grayscale, {})]
-          and new_filepath=None (util must save in same dir and create the new sample).
-        - Do not yield stats — return a simple status.
+        return ctx.params.get("delegate", False)
+
+    def execute(self, ctx):
+        """Executes the actual operation based on the hydrated `ctx`.
+        All operators must implement this method.
+
+        Returns:
+            an optional dict of results values
         """
-        
         def apply_grayscale(image: np.ndarray) -> np.ndarray:
-            """Convert image to 3-channel BGR grayscale.
-            
-            Args:
-                image: Input BGR image array
-                
-            Returns:
-                np.ndarray: 3-channel BGR grayscale image
-            """
-            # Convert to grayscale
+            """Convert image to 3-channel BGR grayscale."""
             gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-            # Convert back to 3-channel BGR (all channels same)
             gray_bgr = cv2.cvtColor(gray, cv2.COLOR_GRAY2BGR)
             return gray_bgr
         
-        # determine samples to process
+        # Get parameters from user input
+        copy_detections = ctx.params.get("copy_detections", False)
+        copy_keypoints = ctx.params.get("copy_keypoints", False)
+        
+        # Build label fields list based on user selection
+        label_fields = []
+        if copy_detections:
+            label_fields.append("detections")
+        if copy_keypoints:
+            label_fields.append("keypoints")
+        
+        # Determine samples to process
         if getattr(ctx, "selected", None):
             samples = ctx.dataset.select(ctx.selected)
         else:
             samples = ctx.view
 
-        # determine which label fields to copy based on user input
-        available_fields = _get_label_fields(ctx)
-        label_fields = []
-        
-        # Check user's checkbox selections from ctx.params
-        for field_name in available_fields:
-            if ctx.params.get(f"copy_{field_name}", False):
-                label_fields.append(field_name)
-        
-        # If no available fields were detected, check default checkboxes
-        if not available_fields:
-            if ctx.params.get("copy_detections", False):
-                label_fields.append("detections")
-            if ctx.params.get("copy_keypoints", False):
-                label_fields.append("keypoints")
-
-        # minimal transform record for provenance
+        # Transform record for provenance
         transform_record = {"name": "grayscale", "params": {}, "plugin": "grayscale_augment"}
         serialized_transform = _serialize_transform_record(transform_record)
 
-        # single transform: apply_grayscale must return a 3-channel BGR image
+        # Apply grayscale transform to each sample
         transforms = [("grayscale", apply_grayscale, {})]
-
-        # Apply transform to each sample and create a new sample with identical annotations
+        
         for sample in samples:
-            # transform_sample is expected to:
-            #  - apply the callable transforms to the image,
-            #  - save the new image in the same directory as original (new_filepath=None),
-            #  - create an fo.Sample copying all requested label fields and metadata,
-            #  - attach transform_record to the new sample,
-            #  - add the new sample to the dataset and return its id (optional).
             transform_sample(
                 sample,
                 transforms,
                 label_fields=label_fields,
-                new_filepath=None,               # util saves next to original
-                tags=None,                       # no tags in minimal form
+                new_filepath=None,
+                tags=None,
                 transform_record=serialized_transform,
             )
 
-        # minimal response; no counters or errors returned
+        # Reload dataset to show new samples
+        ctx.ops.reload_dataset()
+        
         return {"status": "success"}
 
     def resolve_output(self, ctx) -> types.Property:

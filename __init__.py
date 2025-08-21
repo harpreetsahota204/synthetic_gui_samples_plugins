@@ -9,7 +9,7 @@ from fiftyone.operators import types
 from .grayscale import GrayscaleAugment
 from .invert_colors import InvertColorsAugment
 from .color_blind_sim import ColorblindSimAugment
-# from .task_description_augment import TaskDescriptionAugment
+from .task_description_augment import TaskDescriptionAugment
 
 
 def register(plugin):
@@ -18,5 +18,5 @@ def register(plugin):
     plugin.register(GrayscaleAugment)
     plugin.register(InvertColorsAugment)
     plugin.register(ColorblindSimAugment)
-    # plugin.register(TaskDescriptionAugment)
+    plugin.register(TaskDescriptionAugment)
     

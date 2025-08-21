@@ -9,3 +9,4 @@ operators:
   - invert_colors_augment
   - colorblind_sim_augment
   - task_description_augment
+  - resize_images

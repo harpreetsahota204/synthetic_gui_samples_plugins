@@ -9,6 +9,8 @@ from .utils import (
     _serialize_transform_record,
     transform_sample,
     _get_label_fields,
+    _get_detections_fields,
+    _get_keypoints_fields,
 )
 
 
@@ -41,23 +43,37 @@ class GrayscaleAugment(foo.Operator):
         """
         inputs = types.Object()
         
-        # Simple checkbox for copying detections
-        inputs.bool(
-            "copy_detections",
-            default=True,
-            label="Copy detections",
-            description="Copy detection labels to the new grayscale samples",
-            view=types.CheckboxView()
-        )
+        # Check what label fields are actually present
+        has_detections = "detections" in ctx.dataset.get_field_schema()
+        has_keypoints = "keypoints" in ctx.dataset.get_field_schema()
         
-        # Simple checkbox for copying keypoints
-        inputs.bool(
-            "copy_keypoints", 
-            default=True,
-            label="Copy keypoints",
-            description="Copy keypoint labels to the new grayscale samples",
-            view=types.CheckboxView()
-        )
+        # Only show checkboxes for label types that actually exist
+        if has_detections:
+            inputs.bool(
+                "copy_detections",
+                default=True,
+                label="Copy detections",
+                description="Copy detection labels to the new grayscale samples",
+                view=types.CheckboxView()
+            )
+        
+        if has_keypoints:
+            inputs.bool(
+                "copy_keypoints", 
+                default=True,
+                label="Copy keypoints",
+                description="Copy keypoint labels to the new grayscale samples",
+                view=types.CheckboxView()
+            )
+        
+        # Show a message if no supported label fields are found
+        if not has_detections and not has_keypoints:
+            inputs.view(
+                "no_labels_notice",
+                types.Notice(
+                    label="No detections or keypoints found in the current samples. New samples will be created without labels."
+                )
+            )
         
         # Delegation option
         inputs.bool(

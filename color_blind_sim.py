@@ -49,6 +49,8 @@ class ColorblindSimAugment(foo.Operator):
         return foo.OperatorConfig(
             name="colorblind_sim_augment",
             label="Apply Colorblind Simulation Augmentation",
+            description="Apply colorblind simulation augmentation to your samples",
+            icon="/assets/accessibility-color-svgrepo-com.svg",
         )
 
     def resolve_input(self, ctx):

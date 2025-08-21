@@ -37,6 +37,8 @@ class GrayscaleAugment(foo.Operator):
         return foo.OperatorConfig(
             name="grayscale_augment",
             label="Apply Grayscale Augmentation",
+            description="Apply grayscale augmentation to your samples",
+            icon="/assets/image-duotone-svgrepo-com.svg",
         )
 
     def resolve_input(self, ctx):

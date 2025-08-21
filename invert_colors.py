@@ -34,6 +34,7 @@ class InvertColorsAugment(foo.Operator):
         return foo.OperatorConfig(
             name="invert_colors_augment",
             label="Apply Color Inversion Augmentation",
+            icon="/assets/invert-svgrepo-com.svg",
         )
 
     def resolve_input(self, ctx):

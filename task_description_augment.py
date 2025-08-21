@@ -128,6 +128,8 @@ class TaskDescriptionAugment(foo.Operator):
         return foo.OperatorConfig(
             name="task_description_augment",
             label="Rephrase Task Descriptions with LLM",
+            description="Rephrase or tranlate the task descriptions on your samples with Qwen3",
+            icon="/assets/messages-svgrepo-com.svg",
             dynamic=True,  # Enable dynamic inputs for conditional language field
         )
 

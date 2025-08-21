@@ -48,6 +48,7 @@ class ResizeOperator(foo.Operator):
             name="resize_images",
             label="Resize Images to Screen Resolutions",
             description="Resize GUI screenshots to common screen resolutions"
+            icon="/assets/resize-svgrepo-com.svg",
         )
 
     def resolve_input(self, ctx):

@@ -16,9 +16,9 @@ You have freedom to change the tone, style, grammar, level of humour, spelling, 
 
 But you must keep the same meaning and technical accuracy and not change the semantic meaning of the task description.
 
-Original: "{text}"
+Provide only the rephrased text, nothing else, no other text or punctuation.
 
-Rephrased:
+Here is the task description to rephrase: {text}
 """
 
 TRANSLATE_PROMPT = """You are helping generate synthetic data by translating task descriptions for a UI from English to {target_language}.
@@ -29,10 +29,9 @@ But you must keep the same meaning and technical accuracy and not change the sem
 
 Provide EXACTLY ONE translation this UI task description to {target_language}. Keep the same meaning and technical accuracy.
 
-Original: "{text}"
+Provide only the translated text, nothing else, no other text or punctuation.
 
-Translation:
-
+Here is the task description to translate: {text}
 """
 
 def identity_transform(image: np.ndarray) -> np.ndarray:

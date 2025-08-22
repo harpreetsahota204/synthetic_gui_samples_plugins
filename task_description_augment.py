@@ -26,11 +26,9 @@ For example:
 
 You must keep the same meaning and preseve the semantic meaning of the task description, however do not leave the original task description unchanged.
 
-Provide only the rephrased text, nothing else, no other text or punctuation.
-
 Here is the original task description: {text}
 
-Rephrase, go!
+Provide your rephrased text, nothing else, no other text or punctuation.
 """
 
 TRANSLATE_PROMPT = """You are helping generate synthetic data by translating task descriptions for a UI from English to {target_language}.
@@ -41,11 +39,9 @@ You must keep the same meaning and preseve the semantic meaning of the task desc
 
 Provide EXACTLY ONE translation this UI task description to {target_language}. Keep the same meaning and technical accuracy.
 
-Provide only the translated text, nothing else, no other text or punctuation.
-
 Here is the original task description: {text}
 
-Translate, go!
+Provide only the translated text, nothing else, no other text or punctuation.
 """
 
 def identity_transform(image: np.ndarray) -> np.ndarray:

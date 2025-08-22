@@ -186,7 +186,7 @@ class ResizeOperator(foo.Operator):
             transforms = [("resize", apply_resize, {"target_width": target_width, "target_height": target_height})]
             
             # Apply transform and create new sample
-            transform_sample(
+            new_sample_id = transform_sample(
                 sample,
                 transforms,
                 label_fields=label_fields,
@@ -194,6 +194,13 @@ class ResizeOperator(foo.Operator):
                 tags=[f"resized_{resolution_name}"],
                 transform_record=serialized_transform,
             )
+            
+            # Update metadata to reflect new image dimensions
+            new_sample = ctx.dataset[new_sample_id]
+            if new_sample.metadata is not None:
+                new_sample.metadata.width = target_width
+                new_sample.metadata.height = target_height
+                new_sample.save()
 
         # Reload dataset to show new samples
         ctx.ops.reload_dataset()

@@ -30,69 +30,6 @@ def _create_hash():
     hash = hashlib.sha256(str(randint).encode("utf-8")).hexdigest()[:10]  # Create hash and take first 10 chars
     return hash
 
-
-def _execution_mode(ctx, inputs):
-    """Configure execution mode for operators.
-    
-    Sets up UI inputs for delegated vs immediate execution of operators.
-    Adds a notice when delegated execution is selected.
-
-    Args:
-        ctx: Operator context containing parameters
-        inputs: Input configuration object
-
-    Returns:
-        None
-    """
-    delegate = ctx.params.get("delegate", False)
-
-    # Set description based on current delegate state
-    if delegate:
-        description = "Uncheck this box to execute the operation immediately"
-    else:
-        description = "Check this box to delegate execution of this task"
-
-    # Add delegate checkbox to inputs
-    inputs.bool(
-        "delegate",
-        default=False,
-        required=True,
-        label="Delegate execution?",
-        description=description,
-        view=types.CheckboxView(),
-    )
-
-    # Show notice about delegated execution requirements if enabled
-    if delegate:
-        inputs.view(
-            "notice",
-            types.Notice(
-                label=(
-                    "You've chosen delegated execution. Note that you must "
-                    "have a delegated operation service running in order for "
-                    "this task to be processed. See "
-                    "https://docs.voxel51.com/plugins/index.html#operators "
-                    "for more information"
-                )
-            ),
-        )
-
-def _get_image_size(sample):
-    """Get the dimensions of a sample's image.
-
-    Attempts to get dimensions from metadata first, falls back to loading image if needed.
-
-    Args:
-        sample: A FiftyOne sample containing an image
-
-    Returns:
-        tuple: (height, width) dimensions of the image
-    """
-    if sample.metadata is not None and sample.metadata.width is not None:
-        return (sample.metadata.width, sample.metadata.height)
-    else:
-        return Image.open(sample.filepath).size[::-1]  # Reverse size tuple to get (h,w)
-
 def _get_label_fields(sample):
     """Get the names of the fields containing labels for the given sample.
     
@@ -211,62 +148,6 @@ def _serialize_transform_record(transform_record):
     
     return replace_position_types(transform_record)
 
-def _update_keypoints_field(
-    original_sample, new_sample, keypoints_field, transformed_keypoints_dict
-):
-    """Update keypoints in a new sample based on transformed coordinates.
-    
-    Args:
-        original_sample: Original FiftyOne sample
-        new_sample: New sample to update
-        keypoints_field: Name of field containing keypoints
-        transformed_keypoints_dict: Dict mapping keypoint IDs to new coordinates
-
-    Returns:
-        FiftyOne sample: Updated sample with transformed keypoints
-    """
-    new_kps = []
-    for kp in original_sample[keypoints_field].keypoints:
-        kp_id = str(kp._id)
-        new_kp = kp.copy()
-        for i in range(len(kp.points)):
-            kpp_id = f"{kp_id}_{i}"  # Create unique ID for each point
-            if kpp_id in transformed_keypoints_dict:
-                new_kp.points[i] = transformed_keypoints_dict[kpp_id]
-            else:
-                new_kp.points[i] = [float("nan"), float("nan")]  # Use NaN for missing points
-        new_kps.append(new_kp)
-    kps = fo.Keypoints(keypoints=new_kps)
-    new_sample[keypoints_field] = kps
-    return new_sample
-
-def _update_detection_field(
-    original_sample,
-    new_sample,
-    detection_field,
-    transformed_boxes,
-):
-    """Update detections in a new sample based on transformed bounding boxes.
-    
-    Args:
-        original_sample: Original FiftyOne sample
-        new_sample: New sample to update
-        detection_field: Name of field containing detections
-        transformed_boxes: Dict mapping detection IDs to new bounding boxes
-
-    Returns:
-        FiftyOne sample: Updated sample with transformed detections
-    """
-    detections = original_sample[detection_field].detections
-    new_detections = []
-    for det in detections:
-        if str(det._id) in transformed_boxes:
-            new_det = det.copy()
-            new_det.bounding_box = transformed_boxes[str(det._id)]
-            new_detections.append(new_det)
-    new_sample[detection_field] = fo.Detections(detections=new_detections)
-    return new_sample
-
 def transform_sample(
     sample: "fo.core.sample.Sample",
     transforms: list[tuple[str, Callable[[np.ndarray], np.ndarray], dict]],
@@ -329,7 +210,6 @@ def transform_sample(
       a valid NumPy image array.
     """
 
-    
     # Load the original image
     image = cv2.imread(sample.filepath)
     

@@ -23,19 +23,16 @@ This plugin is designed for image datasets containing GUI screenshots in [COCO4G
 ### Prerequisites
 
 - FiftyOne >= 1.3.0
-- Python >= 3.8
+- Python >= 3.10
 - OpenCV (`cv2`)
 - NumPy
 - Pillow (PIL)
 
-### For LLM Text Augmentation (Optional)
+### For LLM Text Augmentation
 
 ```bash
 # Standard PyTorch installation
 pip install torch transformers
-
-# OR for Apple Silicon (M1/M2/M3) with MLX support
-pip install mlx_lm
 ```
 
 ### Plugin Installation
@@ -64,8 +61,11 @@ This plugin provides five main operators accessible through the FiftyOne App's o
 Converts images to 3-channel grayscale while preserving all annotations.
 
 **Features**:
+
 - Maintains 3-channel BGR format for compatibility
+
 - Preserves all bounding boxes and keypoints
+
 - Optional label field copying controls
 
 **Use Case**: Create grayscale variants for robustness testing and data diversity.
@@ -77,8 +77,11 @@ Converts images to 3-channel grayscale while preserving all annotations.
 Inverts image colors using bitwise NOT operation.
 
 **Features**:
+
 - Complete color inversion (white becomes black, etc.)
+
 - Preserves spatial relationships
+
 - Maintains annotation accuracy
 
 **Use Case**: Test model robustness to inverted color schemes (dark mode UIs, high contrast displays).
@@ -90,11 +93,17 @@ Inverts image colors using bitwise NOT operation.
 Simulates various types of color vision deficiency.
 
 **Supported Types**:
+
 - **Deuteranopia**: Green-blind (complete)
+
 - **Protanopia**: Red-blind (complete)  
+
 - **Tritanopia**: Blue-blind (complete)
+
 - **Deuteranomaly**: Green-weak (partial)
+
 - **Protanomaly**: Red-weak (partial)
+
 - **Tritanomaly**: Blue-weak (partial)
 
 **Use Case**: Ensure GUI accessibility by testing how interfaces appear to users with color vision deficiencies.
@@ -106,11 +115,17 @@ Simulates various types of color vision deficiency.
 Uses local language models to rephrase or translate task descriptions in annotations.
 
 **Features**:
-- **Multiple Models**: Support for Qwen3-0.6B, Qwen3-1.7B (with optional MLX acceleration)
+
+- **Multiple Models**: Support for Qwen3-0.6B, Qwen3-1.7B
+
 - **Two Modes**:
+
   - **Rephrase**: Generate alternative phrasings in the same language
+
   - **Translate**: Convert to different languages
+
 - **Provenance**: Preserves original text and includes reasoning
+
 - **Selective Processing**: Choose which annotation types to process
 
 **Use Case**: Create diverse language variations for multilingual GUI understanding or paraphrase augmentation.
@@ -122,15 +137,23 @@ Uses local language models to rephrase or translate task descriptions in annotat
 Resizes images to common screen resolutions while maintaining annotation accuracy.
 
 **Supported Resolutions**:
+
 - **Mobile/Tablet**: 1024×768, 1280×800
+
 - **Laptop/Desktop**: 1366×768, 1920×1080, 1440×900, 1536×864
+
 - **High-End**: 2560×1440, 3840×2160 (4K), 5120×2880 (5K)
+
 - **Ultrawide**: 2560×1080, 3440×1440
+
 - **Custom**: User-defined dimensions
 
 **Features**:
+
 - Automatic annotation scaling (relative coordinates preserved)
+
 - Multiple interpolation methods
+
 - Batch processing support
 
 **Use Case**: Generate training data for different screen sizes and device types.
@@ -140,10 +163,15 @@ Resizes images to common screen resolutions while maintaining annotation accurac
 ### Basic Workflow
 
 1. **Load your dataset** in FiftyOne App
+
 2. **Select samples** (optional) - operators work on selection or entire view
+
 3. **Open operator browser** (⚡ icon in the App)
+
 4. **Choose an operator** from the `@harpreetsahota/synthetic_gui_samples_plugins` section
+
 5. **Configure parameters** in the operator form
+
 6. **Execute** immediately or delegate for background processing
 
 ### Example: Grayscale Augmentation
@@ -223,8 +251,11 @@ Transformed images are saved in the same directory as original images with uniqu
 ### Core Components
 
 - **`transform_sample()`**: Central utility for applying image transformations
+
 - **Transform Functions**: OpenCV-based image processing functions
+
 - **LLM Integration**: Hugging Face Transformers for text processing
+
 - **Annotation Handling**: Automatic copying and scaling of spatial annotations
 
 ### Transform Record
@@ -243,8 +274,11 @@ Each augmented sample includes a `transform_record` in its metadata for full pro
 ## 🎨 Supported Annotation Types
 
 - **Detections** (`fo.Detections`): Bounding boxes with labels and attributes
+
 - **Keypoints** (`fo.Keypoints`): Point-based annotations
+
 - **Task Descriptions**: Text attributes on detection/keypoint objects
+
 - **Custom Attributes**: All custom fields and metadata are preserved
 
 ## 🔍 Use Cases
@@ -252,8 +286,11 @@ Each augmented sample includes a `transform_record` in its metadata for full pro
 ### GUI Model Training
 
 - **Multi-Resolution Training**: Generate samples at different screen resolutions
+
 - **Accessibility Testing**: Create colorblind-simulated variants
+
 - **Robustness Testing**: Test with inverted colors and grayscale images
+
 - **Multilingual Support**: Generate translated task descriptions
 
 ### Data Augmentation Pipeline
@@ -270,7 +307,9 @@ Each augmented sample includes a `transform_record` in its metadata for full pro
 ### Research Applications
 
 - **Vision-Language Models**: Train on diverse visual and textual variations
+
 - **Accessibility Research**: Study GUI perception across different visual conditions
+
 - **Cross-Cultural UX**: Generate multilingual interface descriptions
 
 ## ⚙️ Advanced Features
@@ -279,10 +318,10 @@ Each augmented sample includes a `transform_record` in its metadata for full pro
 
 The plugin supports multiple language models with different performance characteristics:
 
-| Model | Size | Speed | Quality | MLX Support |
-|-------|------|-------|---------|-------------|
-| Qwen3-0.6B | Small | Fastest | Good | ✅ |
-| Qwen3-1.7B | Medium | Fast | Better | ✅ |
+| Model | Size | Speed | Quality | 
+|-------|------|-------|---------|
+| Qwen3-0.6B | Small | Fastest | Good |
+| Qwen3-1.7B | Medium | Fast | Better |
 
 ### Custom Resolutions
 
@@ -320,12 +359,6 @@ numpy
 Pillow
 torch
 transformers
-```
-
-### Optional Dependencies
-
-```txt
-mlx_lm  # For Apple Silicon acceleration
 ```
 
 ## 📄 License

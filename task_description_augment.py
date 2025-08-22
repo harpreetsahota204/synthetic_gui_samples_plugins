@@ -10,16 +10,17 @@ import torch
 from .utils import (
     _serialize_transform_record,
     transform_sample,
+
 )
 
 # Prompt templates as constants
-REPHRASE_PROMPT = """Generate a slight rephrasing of this UI task description. Keep the same meaning but use different words, style, tone, etc.
+REPHRASE_PROMPT = """Generate EXACTLY ONE rephrasing of this UI task description. Keep the same meaning but use different words, style, tone, etc.
 
 Original: "{text}"
 
 Rephrased:"""
 
-TRANSLATE_PROMPT = """Translate this UI task description to {target_language}. Keep the same meaning and technical accuracy.
+TRANSLATE_PROMPT = """Provide EXACTLY ONE translation this UI task description to {target_language}. Keep the same meaning and technical accuracy.
 
 Original: "{text}"
 
@@ -43,7 +44,7 @@ def rephrase_text(text: str, model, tokenizer, mode: str, target_language: str =
     """Use LLM to rephrase or translate text.
     
     Returns:
-        tuple: (rephrased_text, reasoning)
+        tuple: (rephrased_text)
     """
     if mode == "translate" and target_language:
         prompt = TRANSLATE_PROMPT.format(text=text, target_language=target_language)
@@ -56,7 +57,7 @@ def rephrase_text(text: str, model, tokenizer, mode: str, target_language: str =
         messages,
         tokenize=False,
         add_generation_prompt=True,
-        enable_thinking=
+        enable_thinking=False
     )
     
     model_inputs = tokenizer([text_input], return_tensors="pt").to(model.device)
@@ -64,10 +65,10 @@ def rephrase_text(text: str, model, tokenizer, mode: str, target_language: str =
     # Use model card recommended parameters
     generated_ids = model.generate(
         **model_inputs,
-        max_new_tokens=32768,
+        max_new_tokens=2048,
         temperature=0.6,
         do_sample=True,
-        top_p=0.95,
+        top_p=0.80,
         top_k=20,
     )
     
@@ -85,9 +86,9 @@ def rephrase_text(text: str, model, tokenizer, mode: str, target_language: str =
     
     # Fallback to original if something went wrong
     if not rephrased or len(rephrased) < 3:
-        return text, thinking_content
+        return text
         
-    return rephrased, thinking_content
+    return rephrased
 
 def process_labels_with_task_descriptions(labels_list, model, tokenizer, mode, target_language):
     """Process a list of labels (detections or keypoints) to rephrase their task descriptions."""
@@ -96,7 +97,7 @@ def process_labels_with_task_descriptions(labels_list, model, tokenizer, mode, t
             # Preserve original task description
             label.original_task_description = label.task_description
             # Generate new task description using LLM
-            new_description, reasoning = rephrase_text(
+            new_description = rephrase_text(
                 label.task_description, 
                 model, 
                 tokenizer, 
@@ -104,7 +105,6 @@ def process_labels_with_task_descriptions(labels_list, model, tokenizer, mode, t
                 target_language
             )
             label.task_description = new_description
-            label.rephrase_reasoning = reasoning
 
 class TaskDescriptionAugment(foo.Operator):
     """

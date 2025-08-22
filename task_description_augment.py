@@ -74,15 +74,7 @@ def rephrase_text(text: str, model, tokenizer, mode: str, target_language: str =
     
     output_ids = generated_ids[0][len(model_inputs.input_ids[0]):].tolist()
     
-    # parsing thinking content
-    try:
-        # rindex finding 151668 (</think>)
-        index = len(output_ids) - output_ids[::-1].index(151668)
-    except ValueError:
-        index = 0
-
-    thinking_content = tokenizer.decode(output_ids[:index], skip_special_tokens=True).strip("\n")
-    rephrased = tokenizer.decode(output_ids[index:], skip_special_tokens=True).strip("\n")
+    rephrased = tokenizer.decode(output_ids, skip_special_tokens=True).strip("\n")
     
     # Fallback to original if something went wrong
     if not rephrased or len(rephrased) < 3:

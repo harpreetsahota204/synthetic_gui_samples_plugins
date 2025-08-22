@@ -10,24 +10,30 @@ from .utils import (
 
 )
 
-SYSTEM_PROMPT = """You are helping generate synthetic data. The application is generating variations of task descriptions for a UI.
+REPHRASE_PROMPT = """You are helping generate synthetic data by rephrasing task descriptions for a UI.
 
 You have freedom to change the tone, style, grammar, level of humour, spelling, etc.
 
 But you must keep the same meaning and technical accuracy and not change the semantic meaning of the task description.
+
+Original: "{text}"
+
+Rephrased:
 """
 
-REPHRASE_PROMPT = """Generate EXACTLY ONE rephrasing of this UI task description. Keep the same meaning but use different words, style, tone, etc.
+TRANSLATE_PROMPT = """You are helping generate synthetic data by translating task descriptions for a UI from English to {target_language}.
+
+You have freedom to change the tone, style, grammar, level of humour, spelling, etc.
+
+But you must keep the same meaning and technical accuracy and not change the semantic meaning of the task description.
+
+Provide EXACTLY ONE translation this UI task description to {target_language}. Keep the same meaning and technical accuracy.
 
 Original: "{text}"
 
-Rephrased:"""
+Translation:
 
-TRANSLATE_PROMPT = """Provide EXACTLY ONE translation this UI task description to {target_language}. Keep the same meaning and technical accuracy.
-
-Original: "{text}"
-
-Translation:"""
+"""
 
 def identity_transform(image: np.ndarray) -> np.ndarray:
     """Identity transform - returns image unchanged."""
@@ -56,7 +62,6 @@ def rephrase_text(text: str, model, tokenizer, mode: str, target_language: str =
     
     # Standard generation for all models
     messages = [
-        {"role": "system", "content": SYSTEM_PROMPT},
         {"role": "user", "content": prompt}
     ]
     

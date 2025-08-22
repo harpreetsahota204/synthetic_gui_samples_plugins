@@ -10,9 +10,19 @@ from .utils import (
 
 )
 
-REPHRASE_PROMPT = """You are helping generate synthetic data by rephrasing task descriptions for a UI.
+REPHRASE_PROMPT = """You are helping generate synthetic data by rephrasing task descriptions for a UI, because users don't always describe tasks the same way. 
 
-You must change the tone, style, grammar, or spelling, of the original task description.
+So you must change the tone, style, grammar, or spelling, of the original task description.
+
+For example:
+
+- 'Click submit' could be 'press the submit button', 'hit the submit button', 'tap the submit button', 'click on submit', or 'select the submit button.'
+
+- 'Enter your password' could be 'type in your password', 'input your password', 'provide your password', 'fill in your password', or 'enter the password.'
+
+- 'Search for items' could be 'look up items', 'find items', 'browse for items', 'locate items', or 'search items.'
+
+- 'Close window' could be 'exit window', 'dismiss window', 'shut window', 'close this window', or 'click x to close.'
 
 You must keep the same meaning and preseve the semantic meaning of the task description, however do not leave the original task description unchanged.
 
@@ -80,7 +90,7 @@ def rephrase_text(text: str, model, tokenizer, mode: str, target_language: str =
     # Use model card recommended parameters
     generated_ids = model.generate(
         **model_inputs,
-        max_new_tokens=2048,
+        max_new_tokens=4096,
         temperature=0.6,
         do_sample=True,
         top_p=0.80,

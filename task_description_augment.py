@@ -1,19 +1,22 @@
 import fiftyone.operators as foo
 import fiftyone.operators.types as types
 from typing import Dict, Any
-import cv2
 import numpy as np
 from transformers import AutoModelForCausalLM, AutoTokenizer
-import torch
 
-# Expected helpers you already implemented
 from .utils import (
     _serialize_transform_record,
     transform_sample,
 
 )
 
-# Prompt templates as constants
+SYSTEM_PROMPT = """You are helping generate synthetic data. The application is generating variations of task descriptions for a UI.
+
+You have freedom to change the tone, style, grammar, level of humour, spelling, etc.
+
+But you must keep the same meaning and technical accuracy and not change the semantic meaning of the task description.
+"""
+
 REPHRASE_PROMPT = """Generate EXACTLY ONE rephrasing of this UI task description. Keep the same meaning but use different words, style, tone, etc.
 
 Original: "{text}"
@@ -52,7 +55,11 @@ def rephrase_text(text: str, model, tokenizer, mode: str, target_language: str =
         prompt = REPHRASE_PROMPT.format(text=text)
     
     # Standard generation for all models
-    messages = [{"role": "user", "content": prompt}]
+    messages = [
+        {"role": "system", "content": SYSTEM_PROMPT},
+        {"role": "user", "content": prompt}
+    ]
+    
     text_input = tokenizer.apply_chat_template(
         messages,
         tokenize=False,
@@ -284,9 +291,6 @@ class TaskDescriptionAugment(foo.Operator):
         }
         serialized_transform = _serialize_transform_record(transform_record)
 
-        # Initialize LLM
-        model, tokenizer = initialize_llm(model_name)
-        
         # Process each sample
         for sample in samples:
             # Determine which label fields to copy
@@ -298,6 +302,7 @@ class TaskDescriptionAugment(foo.Operator):
             
             # Create the new sample using transform_sample (identity transform - image unchanged)
             transforms = [("identity", identity_transform, {})]
+
             new_sample_id = transform_sample(
                 sample,
                 transforms,
@@ -310,25 +315,30 @@ class TaskDescriptionAugment(foo.Operator):
             # Get the newly created sample and modify its task descriptions
             new_sample = ctx.dataset[new_sample_id]
             
-            # Process detections if requested
-            if process_detections and hasattr(new_sample, "detections") and new_sample.detections is not None:
-                process_labels_with_task_descriptions(
-                    new_sample.detections.detections, 
-                    model, 
-                    tokenizer, 
-                    mode, 
-                    target_language
-                )
-            
-            # Process keypoints if requested
-            if process_keypoints and hasattr(new_sample, "keypoints") and new_sample.keypoints is not None:
-                process_labels_with_task_descriptions(
-                    new_sample.keypoints.keypoints, 
-                    model, 
-                    tokenizer, 
-                    mode, 
-                    target_language
-                )
+            # Process labels based on which fields were copied
+            for field_name in label_fields:
+                if hasattr(new_sample, field_name) and new_sample[field_name] is not None:
+                    field_value = new_sample[field_name]
+                    
+                    # Process detections
+                    if process_detections and hasattr(field_value, 'detections'):
+                        process_labels_with_task_descriptions(
+                            field_value.detections, 
+                            model, 
+                            tokenizer, 
+                            mode, 
+                            target_language
+                        )
+                    
+                    # Process keypoints
+                    if process_keypoints and hasattr(field_value, 'keypoints'):
+                        process_labels_with_task_descriptions(
+                            field_value.keypoints, 
+                            model, 
+                            tokenizer, 
+                            mode, 
+                            target_language
+                        )
             
             # Save the modified sample
             new_sample.save()

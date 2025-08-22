@@ -12,26 +12,30 @@ from .utils import (
 
 REPHRASE_PROMPT = """You are helping generate synthetic data by rephrasing task descriptions for a UI.
 
-You have freedom to change the tone, style, grammar, level of humour, spelling, etc.
+You must change the tone, style, grammar, or spelling, of the original task description.
 
-But you must keep the same meaning and technical accuracy and not change the semantic meaning of the task description.
+You must keep the same meaning and preseve the semantic meaning of the task description, however do not leave the original task description unchanged.
 
 Provide only the rephrased text, nothing else, no other text or punctuation.
 
-Here is the task description to rephrase: {text}
+Here is the original task description: {text}
+
+Rephrase, go!
 """
 
 TRANSLATE_PROMPT = """You are helping generate synthetic data by translating task descriptions for a UI from English to {target_language}.
 
-You have freedom to change the tone, style, grammar, level of humour, spelling, etc.
+You must change the tone, style, grammar, or spelling, of the original task description.
 
-But you must keep the same meaning and technical accuracy and not change the semantic meaning of the task description.
+You must keep the same meaning and preseve the semantic meaning of the task description, however do not leave the original task description unchanged.
 
 Provide EXACTLY ONE translation this UI task description to {target_language}. Keep the same meaning and technical accuracy.
 
 Provide only the translated text, nothing else, no other text or punctuation.
 
-Here is the task description to translate: {text}
+Here is the original task description: {text}
+
+Translate, go!
 """
 
 def identity_transform(image: np.ndarray) -> np.ndarray:

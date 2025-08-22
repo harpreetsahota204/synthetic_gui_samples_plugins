@@ -4,11 +4,9 @@ from typing import Dict, Any
 import cv2
 import numpy as np
 
-# Expected helpers you already implemented
 from .utils import (
     _serialize_transform_record,
     transform_sample,
-    _get_label_fields,
 )
 
 # Common screen resolutions
@@ -47,7 +45,7 @@ class ResizeOperator(foo.Operator):
         return foo.OperatorConfig(
             name="resize_images",
             label="Resize Images to Screen Resolutions",
-            description="Resize GUI screenshots to common screen resolutions"
+            description="Resize GUI screenshots to common screen resolutions",
             icon="/assets/resize-svgrepo-com.svg",
         )
 
@@ -61,7 +59,7 @@ class ResizeOperator(foo.Operator):
             resolution_choices.add_choice(
                 res_name,
                 label=f"{res_name} ({width}×{height})",
-                description=f"Resize to {width}×{height} pixels"
+                description=f"Resize to {width} × {height} pixels"
             )
         
         inputs.enum(

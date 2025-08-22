@@ -143,16 +143,6 @@ class TaskDescriptionAugment(foo.Operator):
             label="Qwen3-1.7B (Balanced)",
             description="Good balance of speed and quality"
         )
-        model_choices.add_choice(
-            "Qwen/Qwen3-0.6B-MLX-bf16",
-            label="Qwen3-0.6B-MLX (Fastest, smallest MLX)",
-            description="Requires: pip install mlx_lm"
-        )
-        model_choices.add_choice(
-            "Qwen/Qwen3-1.7B-MLX-bf16",
-            label="Qwen3-1.7B-MLX (Balanced MLX)",
-            description="Requires: pip install mlx_lm"
-        )
         
         inputs.enum(
             "model_name",

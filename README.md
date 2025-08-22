@@ -50,11 +50,13 @@ fiftyone plugins download https://github.com/harpreetsahota204/synthetic_gui_sam
 fiftyone app launch
 ```
 
-## 🚀 Operators
+# 🚀 Operators
 
 This plugin provides five main operators accessible through the FiftyOne App's operator browser:
 
-### 1. Grayscale Augmentation
+## 1. Grayscale Augmentation
+
+![Grayscale Augmentation](./gifs/grayscale.gif)
 
 **Operator**: `grayscale_augment`
 
@@ -70,7 +72,9 @@ Converts images to 3-channel grayscale while preserving all annotations.
 
 **Use Case**: Create grayscale variants for robustness testing and data diversity.
 
-### 2. Color Inversion Augmentation
+## 2. Color Inversion Augmentation
+
+![Color Inversion Augmentation](./gifs/color_inversion.gif)
 
 **Operator**: `invert_colors_augment`
 
@@ -86,7 +90,9 @@ Inverts image colors using bitwise NOT operation.
 
 **Use Case**: Test model robustness to inverted color schemes (dark mode UIs, high contrast displays).
 
-### 3. Colorblind Simulation
+## 3. Colorblind Simulation
+
+![Colorblind Simulation](./gifs/colorblindness.gif)
 
 **Operator**: `colorblind_sim_augment`
 
@@ -108,7 +114,9 @@ Simulates various types of color vision deficiency.
 
 **Use Case**: Ensure GUI accessibility by testing how interfaces appear to users with color vision deficiencies.
 
-### 4. Task Description Augmentation
+## 4. Task Description Augmentation
+
+![Task Description Augmentation](./gifs/task_description.gif)
 
 **Operator**: `task_description_augment`
 
@@ -130,7 +138,9 @@ Uses local language models to rephrase or translate task descriptions in annotat
 
 **Use Case**: Create diverse language variations for multilingual GUI understanding or paraphrase augmentation.
 
-### 5. Resolution Scaling
+## 5. Resolution Scaling
+
+![Resolution Scaling](./gifs/resolution_scaling.gif)
 
 **Operator**: `resize_images`
 

@@ -14,17 +14,7 @@ REPHRASE_PROMPT = """You are helping generate synthetic data by rephrasing task 
 
 So you must change the tone, style, grammar, or spelling, of the original task description.
 
-For example:
-
-- 'Click submit' could be 'press the submit button', 'hit the submit button', 'tap the submit button', 'click on submit', or 'select the submit button.'
-
-- 'Enter your password' could be 'type in your password', 'input your password', 'provide your password', 'fill in your password', or 'enter the password.'
-
-- 'Search for items' could be 'look up items', 'find items', 'browse for items', 'locate items', or 'search items.'
-
-- 'Close window' could be 'exit window', 'dismiss window', 'shut window', 'close this window', or 'click x to close.'
-
-You must keep the same meaning and preseve the semantic meaning of the task description, however do not leave the original task description unchanged.
+You must keep the same meaning, reference to specific elements, and preseve the semantic meaning of the task description. However, do not leave the original task description unchanged.
 
 Here is the original task description: {text}
 
@@ -35,7 +25,7 @@ TRANSLATE_PROMPT = """You are helping generate synthetic data by translating tas
 
 You must change the tone, style, grammar, or spelling, of the original task description.
 
-You must keep the same meaning and preseve the semantic meaning of the task description, however do not leave the original task description unchanged.
+You must keep the same meaning, reference to specific elements, and preseve the semantic meaning of the task description. However, do not leave the original task description unchanged.
 
 Provide EXACTLY ONE translation this UI task description to {target_language}. Keep the same meaning and technical accuracy.
 

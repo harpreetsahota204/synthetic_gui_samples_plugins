@@ -58,11 +58,11 @@ def initialize_llm(model_name: str):
     )
     return model, tokenizer
 
-def rephrase_text(text: str, model, tokenizer, mode: str, target_language: str = "") -> tuple[str, str]:
+def rephrase_text(text: str, model, tokenizer, mode: str, target_language: str = "", enable_thinking: bool = False) -> str:
     """Use LLM to rephrase or translate text.
     
     Returns:
-        tuple: (rephrased_text)
+        str: rephrased_text
     """
     if mode == "translate" and target_language:
         prompt = TRANSLATE_PROMPT.format(text=text, target_language=target_language)
@@ -78,24 +78,48 @@ def rephrase_text(text: str, model, tokenizer, mode: str, target_language: str =
         messages,
         tokenize=False,
         add_generation_prompt=True,
-        enable_thinking=False
+        enable_thinking=enable_thinking
     )
     
     model_inputs = tokenizer([text_input], return_tensors="pt").to(model.device)
     
-    # Use model card recommended parameters
-    generated_ids = model.generate(
-        **model_inputs,
-        max_new_tokens=4096,
-        temperature=0.6,
-        do_sample=True,
-        top_p=0.80,
-        top_k=20,
-    )
+    # Use different parameters based on thinking mode
+    if enable_thinking:
+        # Thinking mode parameters
+        generated_ids = model.generate(
+            **model_inputs,
+            max_new_tokens=32768,
+            temperature=0.6,
+            do_sample=True,
+            top_p=0.95,
+            top_k=20,
+        )
+    else:
+        # Standard mode parameters
+        generated_ids = model.generate(
+            **model_inputs,
+            max_new_tokens=4096,
+            temperature=0.6,
+            do_sample=True,
+            top_p=0.80,
+            top_k=20,
+        )
     
     output_ids = generated_ids[0][len(model_inputs.input_ids[0]):].tolist()
     
-    rephrased = tokenizer.decode(output_ids, skip_special_tokens=True).strip("\n")
+    if enable_thinking:
+        # Parse thinking content
+        try:
+            # rindex finding 151668 (</think>)
+            index = len(output_ids) - output_ids[::-1].index(151668)
+        except ValueError:
+            index = 0
+        
+        thinking_content = tokenizer.decode(output_ids[:index], skip_special_tokens=True).strip("\n")
+        content = tokenizer.decode(output_ids[index:], skip_special_tokens=True).strip("\n")
+        rephrased = content
+    else:
+        rephrased = tokenizer.decode(output_ids, skip_special_tokens=True).strip("\n")
     
     # Fallback to original if something went wrong
     if not rephrased or len(rephrased) < 3:
@@ -103,7 +127,7 @@ def rephrase_text(text: str, model, tokenizer, mode: str, target_language: str =
         
     return rephrased
 
-def process_labels_with_task_descriptions(labels_list, model, tokenizer, mode, target_language):
+def process_labels_with_task_descriptions(labels_list, model, tokenizer, mode, target_language, enable_thinking):
     """Process a list of labels (detections or keypoints) to rephrase their task descriptions."""
     for label in labels_list:
         if hasattr(label, "task_description") and label.task_description:
@@ -115,7 +139,8 @@ def process_labels_with_task_descriptions(labels_list, model, tokenizer, mode, t
                 model, 
                 tokenizer, 
                 mode, 
-                target_language
+                target_language,
+                enable_thinking
             )
             label.task_description = new_description
 
@@ -209,6 +234,15 @@ class TaskDescriptionAugment(foo.Operator):
                 default="Punjabi"
             )
         
+        # Thinking mode option
+        inputs.bool(
+            "enable_thinking",
+            default=False,
+            label="Enable thinking mode",
+            description="WARNING: Thinking mode takes longer to generate but may produce higher quality results",
+            view=types.CheckboxView()
+        )
+        
         # Check what label fields are actually present
         has_detections = "detections" in ctx.dataset.get_field_schema()
         has_keypoints = "keypoints" in ctx.dataset.get_field_schema()
@@ -274,6 +308,7 @@ class TaskDescriptionAugment(foo.Operator):
         model_name = ctx.params.get("model_name", "Qwen/Qwen3-1.7B")
         mode = ctx.params.get("mode", "rephrase")
         target_language = ctx.params.get("target_language", "") if mode == "translate" else ""
+        enable_thinking = ctx.params.get("enable_thinking", False)
         process_detections = ctx.params.get("process_detections", False)
         process_keypoints = ctx.params.get("process_keypoints", False)
         
@@ -341,7 +376,8 @@ class TaskDescriptionAugment(foo.Operator):
                             model, 
                             tokenizer, 
                             mode, 
-                            target_language
+                            target_language,
+                            enable_thinking
                         )
                     
                     # Process keypoints
@@ -351,7 +387,8 @@ class TaskDescriptionAugment(foo.Operator):
                             model, 
                             tokenizer, 
                             mode, 
-                            target_language
+                            target_language,
+                            enable_thinking
                         )
             
             # Save the modified sample

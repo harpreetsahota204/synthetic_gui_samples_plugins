@@ -1,18 +1,17 @@
+# Standard library imports
 import hashlib
-from PIL import Image
-import numpy as np
 import random
-import re
-import torch
+from pathlib import Path
+from typing import Callable
 
+# Third-party imports
+import cv2
+import numpy as np
+from PIL import Image
+
+# FiftyOne imports
 import fiftyone as fo
 from fiftyone.operators import types
-
-import cv2
-import os
-from pathlib import Path
-
-from typing import Callable
 
 def _create_hash():
     """Generate a random hash string.

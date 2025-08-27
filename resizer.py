@@ -28,6 +28,28 @@ SCREEN_RESOLUTIONS = {
     "1280x800": (1280, 800),     # WXGA (laptops/small monitors)
 }
 
+def _handle_calling(
+        uri, 
+        sample_collection, 
+        use_custom,
+        target_width,
+        target_height,
+        copy_detections,
+        copy_keypoints,        
+        delegate
+        ):
+    ctx = dict(dataset=sample_collection)
+
+    params = dict(
+        use_custom,
+        target_width,
+        target_height,
+        copy_detections,
+        copy_keypoints,
+        delegate
+        )
+    return foo.execute_operator(uri, ctx, params=params)
+
 def apply_resize(image: np.ndarray, target_width: int, target_height: int) -> np.ndarray:
     """Resize image to target dimensions."""
     return cv2.resize(image, (target_width, target_height), interpolation=cv2.INTER_AREA)
@@ -212,3 +234,24 @@ class ResizeOperator(foo.Operator):
         outputs = types.Object()
         outputs.str("status", label="Status")
         return types.Property(outputs, view=types.View(label="Image Resize Complete"))
+    
+    def __call__(
+            self, 
+            sample_collection, 
+            use_custom,
+            target_width,
+            target_height,
+            copy_detections,
+            copy_keypoints,        
+            delegate
+            ):
+        return _handle_calling(
+            self.uri,
+            sample_collection,
+            use_custom,
+            target_width,
+            target_height,
+            copy_detections,
+            copy_keypoints,        
+            delegate
+            )

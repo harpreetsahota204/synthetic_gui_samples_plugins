@@ -134,6 +134,31 @@ def process_labels_with_task_descriptions(labels_list, model, tokenizer, mode, t
             )
             label.task_description = new_description
 
+def _handle_calling(
+        uri, 
+        sample_collection, 
+        model_name,
+        mode,
+        target_language,
+        enable_thinking,
+        process_detections,
+        process_keypoints,       
+        delegate
+        ):
+    ctx = dict(dataset=sample_collection)
+
+    params = dict(
+        model_name,
+        mode,
+        target_language,
+        enable_thinking,
+        process_detections,
+        process_keypoints,
+        delegate
+        )
+    return foo.execute_operator(uri, ctx, params=params)
+
+
 class TaskDescriptionAugment(foo.Operator):
     """
     LLM-based TaskDescriptionAugment operator.
@@ -396,3 +421,26 @@ class TaskDescriptionAugment(foo.Operator):
         outputs = types.Object()
         outputs.str("status", label="Status")
         return types.Property(outputs, view=types.View(label="Task Description Augmentation Complete"))
+    
+    def __call__(
+            self, 
+            sample_collection,
+            model_name,
+            mode,
+            target_language,
+            enable_thinking,
+            process_detections,
+            process_keypoints,
+            delegate
+            ):
+        return _handle_calling(
+            self.uri,
+            sample_collection,
+            model_name,
+            mode,
+            target_language,
+            enable_thinking,
+            process_detections,
+            process_keypoints,
+            delegate
+            )

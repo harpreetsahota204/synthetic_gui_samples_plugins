@@ -13,6 +13,24 @@ from .utils import (
     _get_keypoints_fields,
 )
 
+def _handle_calling(
+        uri, 
+        sample_collection, 
+        colorblind_type,
+        copy_detections,
+        copy_keypoints,        
+        delegate
+        ):
+    ctx = dict(dataset=sample_collection)
+
+    params = dict(
+        colorblind_type,
+        copy_detections,
+        copy_keypoints,
+        delegate
+        )
+    return foo.execute_operator(uri, ctx, params=params)
+
 def apply_colorblind_filter(image: np.ndarray, colorblind_type: str) -> np.ndarray:
     """Apply colorblind simulation matrix to image."""
     # Define colorblind simulation matrices
@@ -223,3 +241,20 @@ class ColorblindSimAugment(foo.Operator):
         outputs = types.Object()
         outputs.str("status", label="Status")
         return types.Property(outputs, view=types.View(label="Colorblind Simulation Augmentation Complete"))
+    
+    def __call__(
+            self, 
+            sample_collection, 
+            colorblind_type,
+            copy_detections,
+            copy_keypoints,        
+            delegate
+            ):
+        return _handle_calling(
+            self.uri,
+            sample_collection,
+            colorblind_type,
+            copy_detections,
+            copy_keypoints,        
+            delegate
+            )

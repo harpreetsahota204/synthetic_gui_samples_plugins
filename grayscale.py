@@ -13,6 +13,23 @@ from .utils import (
     _get_keypoints_fields,
 )
 
+def _handle_calling(
+        uri, 
+        sample_collection, 
+        copy_detections,
+        copy_keypoints,        
+        delegate
+        ):
+    ctx = dict(dataset=sample_collection)
+
+    params = dict(
+        copy_detections,
+        copy_keypoints,
+        delegate
+        )
+    return foo.execute_operator(uri, ctx, params=params)
+
+
 def apply_grayscale(image: np.ndarray) -> np.ndarray:
     """Convert image to 3-channel BGR grayscale."""
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
@@ -158,3 +175,18 @@ class GrayscaleAugment(foo.Operator):
         outputs = types.Object()
         outputs.str("status", label="Status")
         return types.Property(outputs, view=types.View(label="Grayscale Augmentation Complete"))
+    
+    def __call__(
+            self, 
+            sample_collection, 
+            copy_detections,
+            copy_keypoints,        
+            delegate
+            ):
+        return _handle_calling(
+            self.uri,
+            sample_collection,
+            copy_detections,
+            copy_keypoints,        
+            delegate
+            )

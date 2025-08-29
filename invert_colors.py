@@ -180,6 +180,7 @@ class InvertColorsAugment(foo.Operator):
         ):
         return _handle_calling(
             self.uri,
+            sample_collection, 
             copy_detections,
             copy_keypoints,        
             delegate

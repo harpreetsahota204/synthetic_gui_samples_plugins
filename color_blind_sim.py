@@ -24,10 +24,10 @@ def _handle_calling(
     ctx = dict(dataset=sample_collection)
 
     params = dict(
-        colorblind_type,
-        copy_detections,
-        copy_keypoints,
-        delegate
+        colorblind_type=colorblind_type,
+        copy_detections=copy_detections,
+        copy_keypoints=copy_keypoints,
+        delegate=delegate
         )
     return foo.execute_operator(uri, ctx, params=params)
 

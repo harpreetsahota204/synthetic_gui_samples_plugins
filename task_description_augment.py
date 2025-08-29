@@ -148,13 +148,13 @@ def _handle_calling(
     ctx = dict(dataset=sample_collection)
 
     params = dict(
-        model_name,
-        mode,
-        target_language,
-        enable_thinking,
-        process_detections,
-        process_keypoints,
-        delegate
+        model_name=model_name,
+        mode=mode,
+        target_language=target_language,
+        enable_thinking=enable_thinking,
+        process_detections=process_detections,
+        process_keypoints=process_keypoints,
+        delegate=delegate
         )
     return foo.execute_operator(uri, ctx, params=params)
 

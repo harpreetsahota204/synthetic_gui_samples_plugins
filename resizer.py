@@ -41,12 +41,12 @@ def _handle_calling(
     ctx = dict(dataset=sample_collection)
 
     params = dict(
-        use_custom,
-        target_width,
-        target_height,
-        copy_detections,
-        copy_keypoints,
-        delegate
+        use_custom=use_custom,
+        target_width=target_width,
+        target_height=target_height,
+        copy_detections=copy_detections,
+        copy_keypoints=copy_keypoints,
+        delegate=delegate
         )
     return foo.execute_operator(uri, ctx, params=params)
 

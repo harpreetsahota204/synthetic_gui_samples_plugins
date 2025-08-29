@@ -196,14 +196,27 @@ class TaskDescriptionAugment(foo.Operator):
         model_choices = types.DropdownView()
         model_choices.add_choice(
             "Qwen/Qwen3-0.6B",
-            label="Qwen3-0.6B (Fastest, smallest)",
-            description="Lightweight model for quick rephrasing"
+            label="Qwen3-0.6B - Fastest",
+            description="Small and fast model, suitable for simple rephrasing tasks. Lower quality but fastest inference."
         )
         model_choices.add_choice(
             "Qwen/Qwen3-1.7B", 
-            label="Qwen3-1.7B (Balanced)",
-            description="Good balance of speed and quality"
+            label="Qwen3-1.7B - Recommended",
+            description="Recommended model with good balance of speed and quality. Suitable for most use cases."
         )
+
+        model_choices.add_choice(
+            "Qwen/Qwen3-4B-Thinking-2507", 
+            label="Qwen3-4B - Enhanced Reasoning",
+            description="Larger model with improved reasoning capabilities. Better quality but slower inference."
+        )
+
+        model_choices.add_choice(
+            "Qwen/Qwen3-8B", 
+            label="Qwen3-8B - Best Quality",
+            description="Even larger model with best quality output. Significantly slower inference speed."
+        )
+
         
         inputs.enum(
             "model_name",

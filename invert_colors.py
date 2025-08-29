@@ -23,10 +23,10 @@ def _handle_calling(
     ctx = dict(dataset=sample_collection)
 
     params = dict(
-        copy_detections,
-        copy_keypoints,
-        delegate
-        )
+        copy_detections=copy_detections,
+        copy_keypoints=copy_keypoints,
+        delegate=delegate
+    )
     return foo.execute_operator(uri, ctx, params=params)
 
 def apply_color_inversion(image: np.ndarray) -> np.ndarray:
